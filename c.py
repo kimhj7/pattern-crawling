@@ -3,9 +3,11 @@ import subprocess
 import pyautogui
 import pyperclip
 
+import tkinter as tk
 from tkinter import *
+from ttkthemes import ThemedTk
 
-win = Tk()
+win = ThemedTk(theme="arc")
 win.geometry('400x200')
 win.title("더블X패턴")
 
@@ -128,14 +130,7 @@ def inputdoublex(arg2, driver, driver2):
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
-def doAction(arg, arg4, arg6):
-
-    driver = arg4
-    driver2 = arg6
-    # 초기 페이지로 이동
-    if arg != "reset":
-        driver.get(arg)
-        driver2.get("http://pattern2024.com/bbs/login.php")
+def findurl(driver, driver2):
 
     last_window_handle = driver.current_window_handle
     update_completed = False
@@ -174,6 +169,17 @@ def doAction(arg, arg4, arg6):
         except KeyboardInterrupt:
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
+
+def doAction(arg, arg4, arg6):
+
+    driver = arg4
+    driver2 = arg6
+    # 초기 페이지로 이동
+    if arg != "reset":
+        driver.get(arg)
+        driver2.get("http://pattern2024.com/bbs/login.php")
+
+    findurl(arg4, arg6)
 
 def main(a):
     global d1

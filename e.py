@@ -24,62 +24,56 @@ user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36
 options.add_argument('user-agent=' + user_agent)
 options.add_argument("lang=ko_KR")
 options.add_argument('--window-size=1920,1020')
-# options.add_argument("disable-gpu")
+#options.add_argument("disable-gpu")
 options.add_argument("--no-sandbox")
 options.add_experimental_option("detach", True)
 
+
 # 크롬 드라이버 최신 버전 설정
 service = ChromeService(executable_path=ChromeDriverManager().install())
+
+# chrome driver
 driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+last_window_handle = ""
 
-last_window_handle = driver.current_window_handle  # 현재 창의 핸들을 초기 값으로 설정
-
-def check_for_new_window_and_update_url(driver, driver2):
-    last_opened_window_handle = None
-    last_checked_url = ""
-
+def reset(driver, driver2):
+    last_window_handle = driver.current_window_handle
+    update_completed = False
     while True:
-        current_window_handles = driver.window_handles
-
-        if not current_window_handles:
-            print("열린 창이 없습니다. 새 창을 기다립니다.")
-            time.sleep(1)
-            continue
-
-        # 현재 열려 있는 창 중 마지막 창을 선택
-        # 마지막에 열린 새 창이 항상 선택되도록 last_opened_window_handle 업데이트
-        new_last_opened_window_handle = current_window_handles[-1]
-        if new_last_opened_window_handle != last_opened_window_handle:
-            last_opened_window_handle = new_last_opened_window_handle
-            driver.switch_to.window(last_opened_window_handle)
-            last_checked_url = ""  # URL 체크 리셋
+        # 업데이트가 완료된 경우 루프 중지
+        if update_completed:
+            break
 
         try:
-            current_url = driver.current_url
+            # 현재 열려 있는 모든 창의 핸들 가져오기
+            window_handles = driver.window_handles
 
-            # URL 변경 감지
-            if current_url != last_checked_url:
-                print("URL 변경 감지:", current_url)
-                last_checked_url = current_url
+            # 새 창이 열렸는지 확인
+            for window_handle in window_handles:
+                if window_handle != last_window_handle:
+                    # 새로 열린 창으로 전환
+                    driver.switch_to.window(window_handle)
 
-                if "game=baccarat&table_id" in current_url:
-                    print("필요한 URL 변경을 감지했습니다. 작업을 수행합니다.")
-                    # 여기에 필요한 작업 추가
-                    time.sleep(3)
-                    driver.switch_to.frame(driver.find_element(By.TAG_NAME, "iframe"))
-                    time.sleep(3)
-                    elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
-                    inputdoublex(elem, driver, driver2)
-                    crawlresult(driver, driver2)
+                    # 새 창의 URL 확인
+                    current_url = driver.current_url
 
-            time.sleep(1)  # 리소스 최소화를 위해 대기
+                    # URL에 특정 파라미터가 포함되어 있는지 확인
+                    if "game=baccarat" in current_url:
+                        print("특정 파라미터가 포함된 새 창 URL:", current_url)
+                        time.sleep(3)
+                        driver.switch_to.frame(driver.find_element(By.TAG_NAME, "iframe"))
+                        time.sleep(3)
+                        elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
+                        inputdoublex(elem, driver, driver2)
+                        crawlresult(driver, driver2)
 
-        except NoSuchWindowException:
-            print("마지막 창이 닫혔습니다. 새 창을 확인합니다.")
-            last_opened_window_handle = None  # 창 닫힘 감지 시 핸들 초기화
+                        update_completed = True
+
+            # 리소스 사용 최소화를 위해 잠시 대기
+            time.sleep(1)
         except KeyboardInterrupt:
-            print("사용자에 의해 중단됨")
+            # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
 def crawlresult(driver, driver2):
@@ -91,37 +85,47 @@ def crawlresult(driver, driver2):
             break
 
         try:
+            current_url = driver.current_url
+
             element = driver.find_element(By.CSS_SELECTOR, '[class*="gameResult"]')
             # 엘리먼트의 HTML 내용 가져오기
             element_html = element.get_attribute('innerHTML').strip()
-
+            if current_url != last_checked_url:
+                print("URL 변경 감지:", current_url)
+                last_checked_url = current_url
+                reset(driver, driver2)
             # HTML 내용이 비어있지 않은지 확인
-            if element_html:
-                # 주어진 함수 실행
-                number_player = driver.find_element(By.CSS_SELECTOR, '.player--d9544 .score--9b2dc')
-                number_banker = driver.find_element(By.CSS_SELECTOR, '.banker--7e77b .score--9b2dc')
-                player = number_player.get_attribute('innerText')
-                banker = number_banker.get_attribute('innerText')
-                p_input = driver2.find_element(By.CLASS_NAME, "player")
-                b_input = driver2.find_element(By.CLASS_NAME, "banker")
-                submit_button = driver2.find_element(By.CLASS_NAME, "submit")
-                p_input.click()
-                p_input.send_keys(player)
-                b_input.click()
-                b_input.send_keys(banker)
-                submit_button.click()
+                if element_html:
+                    # 주어진 함수 실행
+                    number_player = driver.find_element(By.CSS_SELECTOR, '.player--d9544 .score--9b2dc')
+                    number_banker = driver.find_element(By.CSS_SELECTOR, '.banker--7e77b .score--9b2dc')
+                    player = number_player.get_attribute('innerText')
+                    banker = number_banker.get_attribute('innerText')
+                    p_input = driver2.find_element(By.CLASS_NAME, "player")
+                    b_input = driver2.find_element(By.CLASS_NAME, "banker")
+                    submit_button = driver2.find_element(By.CLASS_NAME, "submit")
+                    p_input.click()
+                    p_input.send_keys(player)
+                    b_input.click()
+                    b_input.send_keys(banker)
+                    submit_button.click()
 
-                function_executed = True
-                time.sleep(10)
-            else:
-                time.sleep(1)
+                    function_executed = True
+                    time.sleep(10)
+                else:
+                    time.sleep(1)
 
             time.sleep(1)  # URL 변경을 체크하는 주기, 필요에 따라 조절
             crawlresult(driver, driver2)
+
+        except NoSuchWindowException:
+            print("마지막 창이 닫혔습니다. 새 창을 확인합니다.")
+            reset(driver, driver2)
+            break
+
         except KeyboardInterrupt:
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
-
 
 def inputdoublex(arg2, driver, driver2):
     element = arg2
@@ -180,8 +184,8 @@ def inputdoublex(arg2, driver, driver2):
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
-
 def findurl(driver, driver2):
+
     last_window_handle = driver.current_window_handle
     update_completed = False
     while True:
@@ -220,32 +224,27 @@ def findurl(driver, driver2):
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
+def doAction(arg, driver, driver2):
 
-def doAction(arg, arg4, arg6):
-    driver = arg4
-    driver2 = arg6
     # 초기 페이지로 이동
-    if arg != "reset":
-        driver.get(arg)
-        driver2.get("http://pattern2024.com/bbs/login.php")
+    driver.get(arg)
+    driver2.get("http://pattern2024.com/bbs/login.php")
 
-    #findurl(arg4, arg6)
-    check_for_new_window_and_update_url(driver, driver2)
-
+    findurl(driver, driver2)
 
 def main(a):
 
     doAction(a, driver, driver2)
 
 
-label1 = Label(win, text="접속할 게임사이트 URL")
+label1 = Label(win, text = "접속할 게임사이트 URL")
 label1.grid(row=0, column=0)
-entry1 = Entry(win, width=20, bg="white")
+entry1 = Entry(win, width = 20, bg = "white")
 entry1.grid(row=0, column=1)
 
-button = Button(win, text="클릭", command=lambda: main(entry1.get()))
+button = Button(win, text="클릭", command = lambda: main(entry1.get()))
 button.grid(row=1, column=0)
-button = Button(win, text="리셋", command=lambda: doAction("reset", d1, d2))
+button = Button(win, text="리셋", command = lambda: doAction("reset",d1, d2))
 button.grid(row=1, column=1)
 
 win.mainloop()
