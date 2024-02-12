@@ -18,6 +18,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException
+from screeninfo import get_monitors
 
 options = ChromeOptions()
 user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36"
@@ -37,6 +38,9 @@ driver = webdriver.Chrome(service=service, options=options)  # <- options로 변
 driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 last_window_handle = ""
 
+def set_chrome_window_size(driver, width, height, x_offset=0, y_offset=0):
+    driver.set_window_position(x_offset, y_offset)
+    driver.set_window_size(width, height)
 def reset(driver, driver2):
     last_window_handle = driver.current_window_handle
     update_completed = False
@@ -226,6 +230,16 @@ def doAction(arg, driver, driver2):
     # 초기 페이지로 이동
     driver.get(arg)
     driver2.get("http://pattern2024.com/bbs/login.php")
+    monitors = get_monitors()
+    width = 1920  # 기본 창 너비
+    height = 1080  # 기본 창 높이
+
+    if len(monitors) == 1:
+        # 단일 모니터인 경우, 기본 창 크기 설정
+        width = monitors[1].width * 0.5 / 2
+        height = monitors[1].height * 0.5 / 2
+        set_chrome_window_size(driver, width, height)
+        set_chrome_window_size(driver2, width, height)
 
     findurl(driver, driver2)
 

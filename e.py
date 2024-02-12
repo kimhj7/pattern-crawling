@@ -76,7 +76,7 @@ def reset(driver, driver2):
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
-def crawlresult(driver, driver2):
+def crawlresult(driver, driver2 ,handle):
     function_executed = False
     last_checked_url = ""
 
@@ -85,38 +85,33 @@ def crawlresult(driver, driver2):
             break
 
         try:
+
             current_url = driver.current_url
 
             element = driver.find_element(By.CSS_SELECTOR, '[class*="gameResult"]')
             # 엘리먼트의 HTML 내용 가져오기
             element_html = element.get_attribute('innerHTML').strip()
-            if current_url != last_checked_url:
-                print("URL 변경 감지:", current_url)
-                last_checked_url = current_url
-                reset(driver, driver2)
+
             # HTML 내용이 비어있지 않은지 확인
-                if element_html:
-                    # 주어진 함수 실행
-                    number_player = driver.find_element(By.CSS_SELECTOR, '.player--d9544 .score--9b2dc')
-                    number_banker = driver.find_element(By.CSS_SELECTOR, '.banker--7e77b .score--9b2dc')
-                    player = number_player.get_attribute('innerText')
-                    banker = number_banker.get_attribute('innerText')
-                    p_input = driver2.find_element(By.CLASS_NAME, "player")
-                    b_input = driver2.find_element(By.CLASS_NAME, "banker")
-                    submit_button = driver2.find_element(By.CLASS_NAME, "submit")
-                    p_input.click()
-                    p_input.send_keys(player)
-                    b_input.click()
-                    b_input.send_keys(banker)
-                    submit_button.click()
+            if element_html:
+                # 주어진 함수 실행
+                number_player = driver.find_element(By.CSS_SELECTOR, '.player--d9544 .score--9b2dc')
+                number_banker = driver.find_element(By.CSS_SELECTOR, '.banker--7e77b .score--9b2dc')
+                player = number_player.get_attribute('innerText')
+                banker = number_banker.get_attribute('innerText')
+                p_input = driver2.find_element(By.CLASS_NAME, "player")
+                b_input = driver2.find_element(By.CLASS_NAME, "banker")
+                submit_button = driver2.find_element(By.CLASS_NAME, "submit")
+                p_input.click()
+                p_input.send_keys(player)
+                b_input.click()
+                b_input.send_keys(banker)
+                submit_button.click()
 
-                    function_executed = True
-                    time.sleep(10)
-                else:
-                    time.sleep(1)
-
-            time.sleep(1)  # URL 변경을 체크하는 주기, 필요에 따라 조절
-            crawlresult(driver, driver2)
+                function_executed = True
+                time.sleep(10)
+            else:
+                time.sleep(1)
 
         except NoSuchWindowException:
             print("마지막 창이 닫혔습니다. 새 창을 확인합니다.")
@@ -214,7 +209,7 @@ def findurl(driver, driver2):
                         time.sleep(3)
                         elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
                         inputdoublex(elem, driver, driver2)
-                        crawlresult(driver, driver2)
+                        crawlresult(driver, driver2, window_handle)
 
                         update_completed = True
 
@@ -244,7 +239,5 @@ entry1.grid(row=0, column=1)
 
 button = Button(win, text="클릭", command = lambda: main(entry1.get()))
 button.grid(row=1, column=0)
-button = Button(win, text="리셋", command = lambda: doAction("reset",d1, d2))
-button.grid(row=1, column=1)
 
 win.mainloop()
