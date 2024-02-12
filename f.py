@@ -77,12 +77,8 @@ def reset(driver, driver2):
             break
 
 def crawlresult(driver, driver2):
-    function_executed = False
-    last_checked_url = ""
 
     while True:
-        if function_executed:
-            break
 
         try:
 
@@ -108,7 +104,6 @@ def crawlresult(driver, driver2):
                 b_input.send_keys(banker)
                 submit_button.click()
 
-                function_executed = True
                 time.sleep(10)
             else:
                 time.sleep(1)
