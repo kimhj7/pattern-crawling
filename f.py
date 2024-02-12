@@ -5,9 +5,8 @@ import pyperclip
 
 import tkinter as tk
 from tkinter import *
-from ttkthemes import ThemedTk
 
-win = ThemedTk(theme="arc")
+win = Tk()
 win.geometry('400x200')
 win.title("더블X패턴")
 
@@ -36,7 +35,7 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 # chrome driver
 driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-last_window_handle = ""
+last_opened_window_handle = True
 
 def set_chrome_window_size(driver, width, height, x_offset=0, y_offset=0):
     driver.set_window_position(x_offset, y_offset)
@@ -83,6 +82,8 @@ def reset(driver, driver2):
 def crawlresult(driver, driver2):
 
     while True:
+        if not last_opened_window_handle:
+            break
 
         try:
 
@@ -107,7 +108,6 @@ def crawlresult(driver, driver2):
                 b_input.click()
                 b_input.send_keys(banker)
                 submit_button.click()
-
                 time.sleep(10)
             else:
                 time.sleep(1)
@@ -206,9 +206,11 @@ def findurl(driver, driver2):
                 print("URL 변경 감지:", current_url)
                 last_checked_url = current_url
 
-                if "game=baccarat" in current_url:
+                if "game=baccarat&table_id" in current_url:
                     print("필요한 URL 변경을 감지했습니다. 작업을 수행합니다.")
-                    time.sleep(3)
+                    time.sleep(5)
+                    driver2.refresh()
+                    time.sleep(5)
                     driver.switch_to.frame(driver.find_element(By.TAG_NAME, "iframe"))
                     time.sleep(3)
                     elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
