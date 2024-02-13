@@ -30,7 +30,10 @@ options.add_argument('--window-size=1920,1020')
 options.add_argument("--no-sandbox")
 
 monitors = get_monitors()
-if monitors[0].width < 1610:
+if monitors[0].width < 1367:
+    options.add_argument("force-device-scale-factor=0.5");
+    options.add_argument("high-dpi-support=0.5");
+elif monitors[0].width > 1367 and monitors[0].width < 1610:
     options.add_argument("force-device-scale-factor=0.6");
     options.add_argument("high-dpi-support=0.6");
 elif monitors[0].width > 1610 and monitors[0].width < 1900:
@@ -55,7 +58,10 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 
-if monitors[0].width < 1610:
+if monitors[0].width < 1367:
+    width = monitors[0].width * 1.05
+    height = monitors[0].height * 1.6
+elif monitors[0].width > 1367 and monitors[0].width < 1610:
     width = monitors[0].width / 1.1
     height = monitors[0].height * 1.5
 elif monitors[0].width > 1610 and monitors[0].width < 1900:
@@ -284,13 +290,6 @@ def doAction(arg, driver, driver2):
     # 초기 페이지로 이동
     driver.get(arg)
     driver2.get("http://pattern2024.com/bbs/login.php")
-
-    if len(monitors) == 1:
-        # 단일 모니터인 경우, 기본 창 크기 설정
-        width = monitors[1].width * 0.5 / 2
-        height = monitors[1].height * 0.5 / 2
-        set_chrome_window_size(driver, width, height)
-        set_chrome_window_size(driver2, width, height)
 
     findurl(driver, driver2)
 
