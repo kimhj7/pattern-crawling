@@ -9,12 +9,14 @@ from tkinter import *
 win = Tk()
 win.geometry('400x200')
 win.title("더블X패턴")
+win.attributes("-topmost", True)
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException
 from screeninfo import get_monitors
@@ -26,8 +28,25 @@ options.add_argument("lang=ko_KR")
 options.add_argument('--window-size=1920,1020')
 #options.add_argument("disable-gpu")
 options.add_argument("--no-sandbox")
-options.add_experimental_option("detach", True)
 
+monitors = get_monitors()
+if monitors[0].width < 1610:
+    options.add_argument("force-device-scale-factor=0.6");
+    options.add_argument("high-dpi-support=0.6");
+elif monitors[0].width > 1610 and monitors[0].width < 1900:
+    options.add_argument("force-device-scale-factor=0.7");
+    options.add_argument("high-dpi-support=0.7");
+elif monitors[0].width > 1900 and monitors[0].width < 2500:
+    options.add_argument("force-device-scale-factor=0.9");
+    options.add_argument("high-dpi-support=0.9");
+elif monitors[0].width > 2500 and monitors[0].width < 3000:
+    options.add_argument("force-device-scale-factor=0.9");
+    options.add_argument("high-dpi-support=0.9");
+elif monitors[0].width > 3000:
+    options.add_argument("force-device-scale-factor=1");
+    options.add_argument("high-dpi-support=1");
+
+options.add_experimental_option("detach", True)
 
 # 크롬 드라이버 최신 버전 설정
 service = ChromeService(executable_path=ChromeDriverManager().install())
@@ -35,7 +54,32 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 # chrome driver
 driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+
+if monitors[0].width < 1610:
+    width = monitors[0].width / 1.1
+    height = monitors[0].height * 1.5
+elif monitors[0].width > 1610 and monitors[0].width < 1900:
+    width = monitors[0].width / 1.35
+    height = monitors[0].height * 1.2
+elif monitors[0].width > 1900 and monitors[0].width < 2500:
+    width = monitors[0].width / 1.65
+    height = monitors[0].height * 1.1
+elif monitors[0].width > 2500 and monitors[0].width < 3000:
+    width = monitors[0].width / 1.68
+    height = monitors[0].height / 1.1
+elif monitors[0].width > 3000:
+    width = monitors[0].width / 3
+    height = monitors[0].height / 1.8
+
+driver.set_window_size(width-120, height)
+driver.set_window_position(0,0)
+driver2.set_window_size(width-120, height)
+driver2.set_window_position(width-120, 0)
+
+
+
 last_opened_window_handle = True
+
 
 def set_chrome_window_size(driver, width, height, x_offset=0, y_offset=0):
     driver.set_window_position(x_offset, y_offset)
@@ -86,8 +130,11 @@ def crawlresult(driver, driver2):
             break
 
         try:
-
             current_url = driver.current_url
+
+            # URL 변경 감지
+            if "game=baccarat&table_id" not in current_url:
+                break
 
             element = driver.find_element(By.CSS_SELECTOR, '[class*="gameResult"]')
             # 엘리먼트의 HTML 내용 가져오기
@@ -141,6 +188,7 @@ def inputdoublex(arg2, driver, driver2):
 
             # 이전 페이지 제목과 현재 페이지 제목이 다를 경우 출력
             if current_title == "더블X패턴":
+
                 for e in elem7:
                     try:
                         text_to_input = e.get_attribute('name')
@@ -181,6 +229,7 @@ def inputdoublex(arg2, driver, driver2):
 def findurl(driver, driver2):
     last_opened_window_handle = None
     last_checked_url = ""
+    global docrawl
 
     while True:
         current_window_handles = driver.window_handles
@@ -196,6 +245,7 @@ def findurl(driver, driver2):
         if new_last_opened_window_handle != last_opened_window_handle:
             last_opened_window_handle = new_last_opened_window_handle
             driver.switch_to.window(last_opened_window_handle)
+            driver.set_window_size(width - 120, height)
             last_checked_url = ""  # URL 체크 리셋
 
         try:
@@ -208,11 +258,13 @@ def findurl(driver, driver2):
 
                 if "game=baccarat&table_id" in current_url:
                     print("필요한 URL 변경을 감지했습니다. 작업을 수행합니다.")
-                    time.sleep(5)
                     driver2.refresh()
-                    time.sleep(5)
-                    driver.switch_to.frame(driver.find_element(By.TAG_NAME, "iframe"))
-                    time.sleep(3)
+                    time.sleep(2)
+                    iframes = driver.find_elements(By.TAG_NAME, "iframe")
+                    # iframe이 하나 이상 있을 경우 첫 번째 iframe으로 이동
+                    if len(iframes) > 0:
+                        driver.switch_to.frame(iframes[0])
+                    time.sleep(1)
                     elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
                     inputdoublex(elem, driver, driver2)
                     crawlresult(driver, driver2)
@@ -232,9 +284,6 @@ def doAction(arg, driver, driver2):
     # 초기 페이지로 이동
     driver.get(arg)
     driver2.get("http://pattern2024.com/bbs/login.php")
-    monitors = get_monitors()
-    width = 1920  # 기본 창 너비
-    height = 1080  # 기본 창 높이
 
     if len(monitors) == 1:
         # 단일 모니터인 경우, 기본 창 크기 설정
