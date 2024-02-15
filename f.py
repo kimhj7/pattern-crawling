@@ -29,6 +29,7 @@ options.add_argument('--window-size=1920,1020')
 #options.add_argument("disable-gpu")
 options.add_argument("--no-sandbox")
 
+
 monitors = get_monitors()
 if monitors[0].width < 1367:
     options.add_argument("force-device-scale-factor=0.5");
@@ -55,32 +56,13 @@ options.add_experimental_option("detach", True)
 service = ChromeService(executable_path=ChromeDriverManager().install())
 
 # chrome driver
-driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+#driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+#driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 
-if monitors[0].width < 1367:
-    width = monitors[0].width * 1.05
-    height = monitors[0].height * 1.6
-elif monitors[0].width > 1367 and monitors[0].width < 1610:
-    width = monitors[0].width / 1.1
-    height = monitors[0].height * 1.5
-elif monitors[0].width > 1610 and monitors[0].width < 1900:
-    width = monitors[0].width / 1.35
-    height = monitors[0].height * 1.2
-elif monitors[0].width > 1900 and monitors[0].width < 2500:
-    width = monitors[0].width / 1.65
-    height = monitors[0].height * 1.1
-elif monitors[0].width > 2500 and monitors[0].width < 3000:
-    width = monitors[0].width / 1.68
-    height = monitors[0].height / 1.1
-elif monitors[0].width > 3000:
-    width = monitors[0].width / 3
-    height = monitors[0].height / 1.8
 
-driver.set_window_size(width-120, height)
-driver.set_window_position(0,0)
-driver2.set_window_size(width-120, height)
-driver2.set_window_position(width-120, 0)
+
+
+
 
 
 
@@ -173,6 +155,9 @@ def crawlresult(driver, driver2):
         except KeyboardInterrupt:
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
+        except Exception as e:
+            print(f"오류 발생: {e}")
+            break
 
 def inputdoublex(arg2, driver, driver2):
     element = arg2
@@ -211,16 +196,21 @@ def inputdoublex(arg2, driver, driver2):
                             else:
                                 text_to_input = text_to_input[:6]
                             if text_to_input == "Player":
+                                time.sleep(0.05)
                                 p_button.click()
                             elif text_to_input == "Banker":
+                                time.sleep(0.05)
                                 b_button.click()
                             elif "Banker Tie" in text_to_input:
+                                time.sleep(0.05)
                                 b_button.click()
                                 t_button.click()
                             elif "Player Tie" in text_to_input:
+                                time.sleep(0.05)
                                 p_button.click()
                                 t_button.click()
                             elif text_to_input == "Banker TiePlayer":
+                                time.sleep(0.05)
                                 b_button.click()
                                 t_button.click()
                     except IndexError:
@@ -230,6 +220,9 @@ def inputdoublex(arg2, driver, driver2):
                 time.sleep(1)
         except KeyboardInterrupt:
             # 사용자가 Ctrl+C를 누르면 루프 종료
+            break
+        except Exception as e:
+            print(f"오류 발생: {e}")
             break
 
 def findurl(driver, driver2):
@@ -284,6 +277,9 @@ def findurl(driver, driver2):
         except KeyboardInterrupt:
             print("사용자에 의해 중단됨")
             break
+        except Exception as e:
+            print(f"오류 발생: {e}")
+            break
 
 def doAction(arg, driver, driver2):
 
@@ -294,6 +290,33 @@ def doAction(arg, driver, driver2):
     findurl(driver, driver2)
 
 def main(a):
+    global width
+    global height
+
+    if monitors[0].width < 1367:
+        width = monitors[0].width * 1.05
+        height = monitors[0].height * 1.6
+    elif monitors[0].width > 1367 and monitors[0].width < 1610:
+        width = monitors[0].width / 1.1
+        height = monitors[0].height * 1.5
+    elif monitors[0].width > 1610 and monitors[0].width < 1900:
+        width = monitors[0].width / 1.35
+        height = monitors[0].height * 1.2
+    elif monitors[0].width > 1900 and monitors[0].width < 2500:
+        width = monitors[0].width / 1.65
+        height = monitors[0].height * 1.1
+    elif monitors[0].width > 2500 and monitors[0].width < 3000:
+        width = monitors[0].width / 1.68
+        height = monitors[0].height / 1.1
+    elif monitors[0].width > 3000:
+        width = monitors[0].width / 3
+        height = monitors[0].height / 1.8
+    driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+    driver2 = webdriver.Chrome(service=service, options=options)
+    driver.set_window_size(width - 120, height)
+    driver.set_window_position(0, 0)
+    driver2.set_window_size(width - 120, height)
+    driver2.set_window_position(width - 120, 0)
 
     doAction(a, driver, driver2)
 
@@ -304,6 +327,6 @@ entry1 = Entry(win, width = 20, bg = "white")
 entry1.grid(row=0, column=1)
 
 button = Button(win, text="클릭", command = lambda: main(entry1.get()))
-button.grid(row=1, column=0)
+button.grid(row=0, column=2)
 
 win.mainloop()
