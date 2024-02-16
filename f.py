@@ -41,8 +41,8 @@ elif monitors[0].width > 1610 and monitors[0].width < 1900:
     options.add_argument("force-device-scale-factor=0.7");
     options.add_argument("high-dpi-support=0.7");
 elif monitors[0].width > 1900 and monitors[0].width < 2500:
-    options.add_argument("force-device-scale-factor=0.9");
-    options.add_argument("high-dpi-support=0.9");
+    options.add_argument("force-device-scale-factor=0.8");
+    options.add_argument("high-dpi-support=0.8");
 elif monitors[0].width > 2500 and monitors[0].width < 3000:
     options.add_argument("force-device-scale-factor=0.9");
     options.add_argument("high-dpi-support=0.9");
@@ -58,12 +58,6 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 # chrome driver
 #driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 #driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-
-
-
-
-
-
 
 
 last_opened_window_handle = True
@@ -167,8 +161,13 @@ def inputdoublex(arg2, driver, driver2):
     elem5 = elem4.find_element(By.TAG_NAME, 'svg')
     elem6 = elem5.find_element(By.TAG_NAME, 'svg')
     elem7 = elem6.find_elements(By.TAG_NAME, 'svg')
+    finish_check = driver.find_element(By.CLASS_NAME, 'svg--47a93')
+
     update_completed = False
     while True:
+        if len(finish_check.find_elements(By.TAG_NAME, 'svg')) == 0:
+            driver2.refresh()
+
         # 업데이트가 완료된 경우 루프 중지
         if update_completed:
             break
@@ -196,21 +195,16 @@ def inputdoublex(arg2, driver, driver2):
                             else:
                                 text_to_input = text_to_input[:6]
                             if text_to_input == "Player":
-                                time.sleep(0.05)
                                 p_button.click()
                             elif text_to_input == "Banker":
-                                time.sleep(0.05)
                                 b_button.click()
                             elif "Banker Tie" in text_to_input:
-                                time.sleep(0.05)
                                 b_button.click()
                                 t_button.click()
                             elif "Player Tie" in text_to_input:
-                                time.sleep(0.05)
                                 p_button.click()
                                 t_button.click()
                             elif text_to_input == "Banker TiePlayer":
-                                time.sleep(0.05)
                                 b_button.click()
                                 t_button.click()
                     except IndexError:
@@ -258,13 +252,14 @@ def findurl(driver, driver2):
                 if "game=baccarat&table_id" in current_url:
                     print("필요한 URL 변경을 감지했습니다. 작업을 수행합니다.")
                     driver2.refresh()
-                    time.sleep(2)
+                    time.sleep(5)
                     iframes = driver.find_elements(By.TAG_NAME, "iframe")
                     # iframe이 하나 이상 있을 경우 첫 번째 iframe으로 이동
                     if len(iframes) > 0:
                         driver.switch_to.frame(iframes[0])
                     time.sleep(1)
                     elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
+
                     inputdoublex(elem, driver, driver2)
                     crawlresult(driver, driver2)
 
