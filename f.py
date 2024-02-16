@@ -7,7 +7,7 @@ import tkinter as tk
 from tkinter import *
 
 win = Tk()
-win.geometry('400x200')
+win.geometry('600x300')
 win.title("더블X패턴")
 win.attributes("-topmost", True)
 
@@ -18,7 +18,7 @@ from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException
+from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, StaleElementReferenceException
 from screeninfo import get_monitors
 
 options = ChromeOptions()
@@ -32,23 +32,23 @@ options.add_argument("--no-sandbox")
 
 monitors = get_monitors()
 if monitors[0].width < 1367:
-    options.add_argument("force-device-scale-factor=0.5");
-    options.add_argument("high-dpi-support=0.5");
+    options.add_argument("force-device-scale-factor=0.5")
+    options.add_argument("high-dpi-support=0.5")
 elif monitors[0].width > 1367 and monitors[0].width < 1610:
-    options.add_argument("force-device-scale-factor=0.6");
-    options.add_argument("high-dpi-support=0.6");
+    options.add_argument("force-device-scale-factor=0.6")
+    options.add_argument("high-dpi-support=0.6")
 elif monitors[0].width > 1610 and monitors[0].width < 1900:
-    options.add_argument("force-device-scale-factor=0.7");
-    options.add_argument("high-dpi-support=0.7");
+    options.add_argument("force-device-scale-factor=0.7")
+    options.add_argument("high-dpi-support=0.7")
 elif monitors[0].width > 1900 and monitors[0].width < 2500:
-    options.add_argument("force-device-scale-factor=0.8");
-    options.add_argument("high-dpi-support=0.8");
+    options.add_argument("force-device-scale-factor=0.8")
+    options.add_argument("high-dpi-support=0.8")
 elif monitors[0].width > 2500 and monitors[0].width < 3000:
-    options.add_argument("force-device-scale-factor=0.9");
-    options.add_argument("high-dpi-support=0.9");
+    options.add_argument("force-device-scale-factor=0.9")
+    options.add_argument("high-dpi-support=0.9")
 elif monitors[0].width > 3000:
-    options.add_argument("force-device-scale-factor=1");
-    options.add_argument("high-dpi-support=1");
+    options.add_argument("force-device-scale-factor=1.3")
+    options.add_argument("high-dpi-support=1.3")
 
 options.add_experimental_option("detach", True)
 
@@ -165,8 +165,6 @@ def inputdoublex(arg2, driver, driver2):
 
     update_completed = False
     while True:
-        if len(finish_check.find_elements(By.TAG_NAME, 'svg')) == 0:
-            driver2.refresh()
 
         # 업데이트가 완료된 경우 루프 중지
         if update_completed:
@@ -181,6 +179,7 @@ def inputdoublex(arg2, driver, driver2):
 
                 for e in elem7:
                     try:
+                        e.is_displayed()
                         text_to_input = e.get_attribute('name')
 
                         if text_to_input is None:
@@ -207,11 +206,24 @@ def inputdoublex(arg2, driver, driver2):
                             elif text_to_input == "Banker TiePlayer":
                                 b_button.click()
                                 t_button.click()
+
+                    except StaleElementReferenceException:
+                        print("요소가 사라졌습니다. 다른 작업을 수행합니다.1")
+                        break
+
                     except IndexError:
                         pass
+                    except Exception as ex:
+                        print(f"오류 발생: {ex}")
+                        break
                 update_completed = True
             else:
                 time.sleep(1)
+
+        except StaleElementReferenceException:
+            print("요소가 사라졌습니다. 다른 작업을 수행합니다.")
+            break
+
         except KeyboardInterrupt:
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
@@ -304,8 +316,8 @@ def main(a):
         width = monitors[0].width / 1.68
         height = monitors[0].height / 1.1
     elif monitors[0].width > 3000:
-        width = monitors[0].width / 3
-        height = monitors[0].height / 1.8
+        width = monitors[0].width / 2.5
+        height = monitors[0].height / 1.5
     driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
     driver2 = webdriver.Chrome(service=service, options=options)
     driver.set_window_size(width - 120, height)
