@@ -1,8 +1,11 @@
 import time
 import subprocess
+import tkinter.messagebox
+
 import pyautogui
 import pyperclip
-
+import requests
+import uuid
 import tkinter as tk
 from tkinter import *
 
@@ -26,9 +29,8 @@ user_agent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6) AppleWebKit/537.36
 options.add_argument('user-agent=' + user_agent)
 options.add_argument("lang=ko_KR")
 options.add_argument('--window-size=1920,1020')
-#options.add_argument("disable-gpu")
+# options.add_argument("disable-gpu")
 options.add_argument("--no-sandbox")
-
 
 monitors = get_monitors()
 if monitors[0].width < 1367:
@@ -56,16 +58,31 @@ options.add_experimental_option("detach", True)
 service = ChromeService(executable_path=ChromeDriverManager().install())
 
 # chrome driver
-#driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-#driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+# driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+# driver2 = webdriver.Chrome(service=service, options=options)  # <- options로 변경
 
 
 last_opened_window_handle = True
+
+serial_number = "ABCD1234"
+
+
+def get_external_ip():
+    response = requests.get('https://httpbin.org/ip')
+    ip = response.json()['origin']
+    return ip
+
+
+def get_mac_address():
+    mac = ':'.join(['{:02x}'.format((uuid.getnode() >> elements) & 0xff) for elements in range(0, 2 * 6, 2)][::-1])
+    return mac
 
 
 def set_chrome_window_size(driver, width, height, x_offset=0, y_offset=0):
     driver.set_window_position(x_offset, y_offset)
     driver.set_window_size(width, height)
+
+
 def reset(driver, driver2):
     last_window_handle = driver.current_window_handle
     update_completed = False
@@ -105,8 +122,8 @@ def reset(driver, driver2):
             # 사용자가 Ctrl+C를 누르면 루프 종료
             break
 
-def crawlresult(driver, driver2):
 
+def crawlresult(driver, driver2):
     while True:
         if not last_opened_window_handle:
             break
@@ -152,6 +169,7 @@ def crawlresult(driver, driver2):
         except Exception as e:
             print(f"오류 발생: {e}")
             break
+
 
 def inputdoublex(arg2, driver, driver2):
     element = arg2
@@ -231,6 +249,7 @@ def inputdoublex(arg2, driver, driver2):
             print(f"오류 발생: {e}")
             break
 
+
 def findurl(driver, driver2):
     last_opened_window_handle = None
     last_checked_url = ""
@@ -288,52 +307,79 @@ def findurl(driver, driver2):
             print(f"오류 발생: {e}")
             break
 
-def doAction(arg, driver, driver2):
 
+def doAction(arg, driver, driver2):
     # 초기 페이지로 이동
     driver.get(arg)
     driver2.get("http://pattern2024.com/bbs/login.php")
 
     findurl(driver, driver2)
 
-def main(a):
-    global width
-    global height
 
-    if monitors[0].width < 1367:
-        width = monitors[0].width * 1.05
-        height = monitors[0].height * 1.6
-    elif monitors[0].width > 1367 and monitors[0].width < 1610:
-        width = monitors[0].width / 1.1
-        height = monitors[0].height * 1.5
-    elif monitors[0].width > 1610 and monitors[0].width < 1900:
-        width = monitors[0].width / 1.35
-        height = monitors[0].height * 1.2
-    elif monitors[0].width > 1900 and monitors[0].width < 2500:
-        width = monitors[0].width / 1.65
-        height = monitors[0].height * 1.1
-    elif monitors[0].width > 2500 and monitors[0].width < 3000:
-        width = monitors[0].width / 1.68
-        height = monitors[0].height / 1.1
-    elif monitors[0].width > 3000:
-        width = monitors[0].width / 2.5
-        height = monitors[0].height / 1.5
-    driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-    driver2 = webdriver.Chrome(service=service, options=options)
-    driver.set_window_size(width - 120, height)
-    driver.set_window_position(0, 0)
-    driver2.set_window_size(width - 120, height)
-    driver2.set_window_position(width - 120, 0)
+def main(a, b):
+    sp = b.split(",")
+    if sp[0] == "1":
+        tkinter.messagebox.showwarning("동시 사용오류", "다른곳에서 동시접속 사용중입니다.\n사용중인 아이피 : %s" % sp[1])
+    else:
+        global width
+        global height
 
-    doAction(a, driver, driver2)
+        if monitors[0].width < 1367:
+            width = monitors[0].width * 1.05
+            height = monitors[0].height * 1.6
+        elif monitors[0].width > 1367 and monitors[0].width < 1610:
+            width = monitors[0].width / 1.1
+            height = monitors[0].height * 1.5
+        elif monitors[0].width > 1610 and monitors[0].width < 1900:
+            width = monitors[0].width / 1.35
+            height = monitors[0].height * 1.2
+        elif monitors[0].width > 1900 and monitors[0].width < 2500:
+            width = monitors[0].width / 1.65
+            height = monitors[0].height * 1.1
+        elif monitors[0].width > 2500 and monitors[0].width < 3000:
+            width = monitors[0].width / 1.68
+            height = monitors[0].height / 1.1
+        elif monitors[0].width > 3000:
+            width = monitors[0].width / 2.5
+            height = monitors[0].height / 1.5
+        driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+        driver2 = webdriver.Chrome(service=service, options=options)
+        driver.set_window_size(width - 120, height)
+        driver.set_window_position(0, 0)
+        driver2.set_window_size(width - 120, height)
+        driver2.set_window_position(width - 120, 0)
+
+        doAction(a, driver, driver2)
 
 
-label1 = Label(win, text = "접속할 게임사이트 URL")
+def on_closing():
+    url = "http://15.165.159.63/close_program.php"
+    datas = {
+        'serial_number': serial_number,
+        'mac': get_mac_address(),
+        'ip': get_external_ip()
+    }
+    response = requests.post(url, data=datas)
+    win.destroy()
+
+
+url = "http://15.165.159.63/serial_check.php"
+datas = {
+    'serial_number': serial_number,
+    'mac': get_mac_address(),
+    'ip': get_external_ip()
+}
+
+response = requests.post(url, data=datas)
+t = response.text
+
+label1 = Label(win, text="접속할 게임사이트 URL")
 label1.grid(row=0, column=0)
-entry1 = Entry(win, width = 20, bg = "white")
+entry1 = Entry(win, width=20, bg="white")
 entry1.grid(row=0, column=1)
 
-button = Button(win, text="클릭", command = lambda: main(entry1.get()))
+button = Button(win, text="클릭", command=lambda: main(entry1.get(), t))
 button.grid(row=0, column=2)
+win.protocol("WM_DELETE_WINDOW", on_closing)
 
 win.mainloop()
