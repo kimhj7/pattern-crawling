@@ -1,6 +1,8 @@
 import time
 import subprocess
 import tkinter.messagebox
+import os
+import sys
 
 import pyautogui
 import pyperclip
@@ -8,9 +10,14 @@ import requests
 import uuid
 import tkinter as tk
 from tkinter import *
+from pathlib import Path
+
+OUTPUT_PATH = Path(__file__).parent
+ASSETS_PATH = OUTPUT_PATH / Path(r".\assets\frame0")
 
 win = Tk()
 win.geometry('600x300')
+win.configure(bg = "#3A7FF6")
 win.title("더블X패턴")
 win.attributes("-topmost", True)
 
@@ -34,8 +41,8 @@ options.add_argument("--no-sandbox")
 
 monitors = get_monitors()
 if monitors[0].width < 1367:
-    options.add_argument("force-device-scale-factor=0.5")
-    options.add_argument("high-dpi-support=0.5")
+    options.add_argument("force-device-scale-factor=0.45")
+    options.add_argument("high-dpi-support=0.45")
 elif monitors[0].width > 1367 and monitors[0].width < 1610:
     options.add_argument("force-device-scale-factor=0.6")
     options.add_argument("high-dpi-support=0.6")
@@ -373,13 +380,119 @@ datas = {
 response = requests.post(url, data=datas)
 t = response.text
 
-label1 = Label(win, text="접속할 게임사이트 URL")
-label1.grid(row=0, column=0)
-entry1 = Entry(win, width=20, bg="white")
-entry1.grid(row=0, column=1)
+def relative_to_assets(path: str) -> Path:
+    return ASSETS_PATH / Path(path)
 
-button = Button(win, text="클릭", command=lambda: main(entry1.get(), t))
-button.grid(row=0, column=2)
+def resource_path(relative_path):
+    """ 리소스의 절대 경로를 얻기 위한 함수 """
+    try:
+        # PyInstaller가 생성한 임시 폴더에서 실행 중일 때의 경로
+        base_path = sys._MEIPASS
+    except Exception:
+        # 일반적인 Python 인터프리터에서 실행 중일 때의 경로
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+canvas = Canvas(
+    win,
+    bg = "#3A7FF6",
+    height = 300,
+    width = 600,
+    bd = 0,
+    highlightthickness = 0,
+    relief = "ridge"
+)
+
+canvas.place(x = 0, y = 0)
+canvas.create_rectangle(
+    283.9999999999999,
+    7.105427357601002e-15,
+    599.9999999999999,
+    300.0,
+    fill="#FCFCFC",
+    outline="")
+
+logo_image = PhotoImage(
+    file=resource_path(os.path.join("assets", "logo.png"))
+)
+canvas.create_image(130,100,image=logo_image)
+
+canvas.create_text(
+    305.9999999999999,
+    53.00000000000001,
+    anchor="nw",
+    text="사이트URL 입력",
+    fill="#505485",
+    font=("Roboto Bold", 24 * -1)
+)
+
+canvas.create_rectangle(
+    39.999999999999886,
+    164.0,
+    99.99999999999989,
+    169.0,
+    fill="#FCFCFC",
+    outline="")
+
+entry_image_1 = PhotoImage(
+    file=resource_path(os.path.join("assets", "entry_1.png"))
+)
+
+entry_bg_1 = canvas.create_image(
+    434.4999999999999,
+    143.5,
+    image=entry_image_1
+)
+entry_1 = Entry(
+    bd=0,
+    bg="#F1F5FF",
+    fg="#000716",
+    highlightthickness=0
+)
+entry_1.place(
+    x=317.9999999999999,
+    y=119.0,
+    width=233.0,
+    height=47.0
+)
+
+canvas.create_text(
+    39.999999999999886,
+    194.0,
+    anchor="nw",
+    text="DOUBLE X PATTERN 접속기",
+    fill="#FCFCFC",
+    font=("ZCOOLXiaoWei Regular", 15 * -1)
+)
+
+button_image_1 = PhotoImage(
+    file=resource_path(os.path.join("assets", "button_1.png"))
+)
+button_1 = Button(
+    image=button_image_1,
+    borderwidth=0,
+    highlightthickness=0,
+    command = lambda: main(entry_1.get(), t),
+    relief="flat"
+)
+button_1.place(
+    x=336.9999999999999,
+    y=211.0,
+    width=180.0,
+    height=55.0
+)
+button_1.bind("<Enter>", button_1.config(cursor="hand2"))
+button_1.bind("<Leave>", button_1.config(cursor=""))
+canvas.create_text(
+    450,
+    279.0,
+    anchor="nw",
+    text="SERIAL NO. %s" % serial_number,
+    fill="#a0a0a0",
+    font=("ZCOOLXiaoWei Regular", 13 * -1)
+)
+
+win.resizable(False, False)
 win.protocol("WM_DELETE_WINDOW", on_closing)
-
 win.mainloop()
