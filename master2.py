@@ -189,6 +189,14 @@ def inputdoublex(arg2, driver, driver2):
     finish_check = driver.find_element(By.CLASS_NAME, 'svg--47a93')
 
     update_completed = False
+    click_listener_script = """
+    document.querySelector('div.content--82383 > .commonUiElement > .bottom-right--235ec > .box--51c3f > div > .wrapper--bafc9:nth-child(3) > button').addEventListener('click', function(event) {      
+        alert('이전 게임 창 반드시 종료 후 다른방 입장');
+        return false;
+    });
+    """
+    # root > div > div > div.content--82383 > div:nth-child(10) > div.bottom-right--235ec > div > div > div:nth-child(3) > button
+    driver.execute_script(click_listener_script)
     while True:
 
         # 업데이트가 완료된 경우 루프 중지
@@ -290,12 +298,13 @@ def findurl(driver, driver2):
                 if "game=baccarat&table_id" in current_url:
                     print("필요한 URL 변경을 감지했습니다. 작업을 수행합니다.")
                     driver2.refresh()
+                    driver2.refresh()
                     time.sleep(5)
                     iframes = driver.find_elements(By.TAG_NAME, "iframe")
                     # iframe이 하나 이상 있을 경우 첫 번째 iframe으로 이동
                     if len(iframes) > 0:
                         driver.switch_to.frame(iframes[0])
-                    time.sleep(1)
+
                     elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
                     inputdoublex(elem, driver, driver2)
                     time.sleep(5)
