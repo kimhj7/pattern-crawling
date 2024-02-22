@@ -16,7 +16,7 @@ OUTPUT_PATH = Path(__file__).parent
 ASSETS_PATH = OUTPUT_PATH / Path(r".\assets\frame0")
 
 win = Tk()
-win.geometry('900x450')
+win.geometry('600x300')
 win.configure(bg = "#3A7FF6")
 win.title("더블X패턴")
 win.attributes("-topmost", True)
@@ -71,7 +71,7 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 
 last_opened_window_handle = True
 
-serial_number = "ABCD1234"
+serial_number = "TEST005"
 
 
 def get_external_ip():
@@ -397,8 +397,8 @@ def resource_path(relative_path):
 canvas = Canvas(
     win,
     bg = "#3A7FF6",
-    height = 450,
-    width = 900,
+    height = 300,
+    width = 600,
     bd = 0,
     highlightthickness = 0,
     relief = "ridge"
@@ -406,32 +406,32 @@ canvas = Canvas(
 
 canvas.place(x = 0, y = 0)
 canvas.create_rectangle(
-    425.9999999999999,
+    283.9999999999999,
     7.105427357601002e-15,
-    899.9999999999999,
-    450.0,
+    599.9999999999999,
+    300.0,
     fill="#FCFCFC",
     outline="")
 
 logo_image = PhotoImage(
     file=resource_path(os.path.join("assets", "logo.png"))
 )
-canvas.create_image(180,130,image=logo_image)
+canvas.create_image(130,100,image=logo_image)
 
 canvas.create_text(
-    458.9999999999999,
-    80.0,
+    305.9999999999999,
+    53.00000000000001,
     anchor="nw",
     text="사이트URL 입력",
     fill="#505485",
-    font=("Roboto Bold", 32 * -1)
+    font=("Roboto Bold", 24 * -1)
 )
 
 canvas.create_rectangle(
-    42.999999999999886,
-    234.0,
-    111.99999999999989,
-    241.0,
+    39.999999999999886,
+    164.0,
+    99.99999999999989,
+    169.0,
     fill="#FCFCFC",
     outline="")
 
@@ -440,31 +440,30 @@ entry_image_1 = PhotoImage(
 )
 
 entry_bg_1 = canvas.create_image(
-    651.9999999999999,
-    215.5,
+    434.4999999999999,
+    143.5,
     image=entry_image_1
 )
 entry_1 = Entry(
     bd=0,
-    bg="#DDE2EE",
+    bg="#F1F5FF",
     fg="#000716",
-    font=("Roboto Bold", 18 * -1),
     highlightthickness=0
 )
 entry_1.place(
-    x=470.9999999999999,
-    y=179.0,
-    width=362.0,
-    height=71.0
+    x=317.9999999999999,
+    y=119.0,
+    width=233.0,
+    height=47.0
 )
 
 canvas.create_text(
-    42.999999999999886,
-    292.0,
+    39.999999999999886,
+    194.0,
     anchor="nw",
     text="DOUBLE X PATTERN 접속기",
     fill="#FCFCFC",
-    font=("Roboto Bold", 25 * -1)
+    font=("ZCOOLXiaoWei Regular", 15 * -1)
 )
 
 button_image_1 = PhotoImage(
@@ -478,20 +477,20 @@ button_1 = Button(
     relief="flat"
 )
 button_1.place(
-    x=507.9999999999999,
-    y=309.0,
-    width=270.0,
-    height=82.5
+    x=336.9999999999999,
+    y=211.0,
+    width=180.0,
+    height=55.0
 )
 button_1.bind("<Enter>", button_1.config(cursor="hand2"))
 button_1.bind("<Leave>", button_1.config(cursor=""))
 canvas.create_text(
-    730,
-    419.0,
+    450,
+    279.0,
     anchor="nw",
     text="SERIAL NO. %s" % serial_number,
     fill="#a0a0a0",
-    font=("ZCOOLXiaoWei Regular", 14 * -1)
+    font=("ZCOOLXiaoWei Regular", 13 * -1)
 )
 
 win.resizable(False, False)
