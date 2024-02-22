@@ -299,6 +299,7 @@ def findurl(driver, driver2):
                     elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
 
                     inputdoublex(elem, driver, driver2)
+                    time.sleep(5)
                     crawlresult(driver, driver2)
 
             time.sleep(1)  # 리소스 최소화를 위해 대기
