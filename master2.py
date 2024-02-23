@@ -300,12 +300,17 @@ def findurl(driver, driver2):
                     driver2.refresh()
                     driver2.refresh()
                     time.sleep(5)
+                    driver.switch_to.default_content()
                     iframes = driver.find_elements(By.TAG_NAME, "iframe")
                     # iframe이 하나 이상 있을 경우 첫 번째 iframe으로 이동
                     if len(iframes) > 0:
                         driver.switch_to.frame(iframes[0])
+                    try:
+                        elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
+                    except NoSuchElementException:
+                        print("지정된 요소를 찾을 수 없습니다.")
+                        continue
 
-                    elem = driver.find_element(By.CLASS_NAME, 'roadGrid--bd5fc')
                     inputdoublex(elem, driver, driver2)
                     time.sleep(5)
                     crawlresult(driver, driver2)
