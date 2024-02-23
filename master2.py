@@ -161,7 +161,7 @@ def crawlresult(driver, driver2):
                 b_input.click()
                 b_input.send_keys(banker)
                 submit_button.click()
-                time.sleep(10)
+                time.sleep(5)
             else:
                 time.sleep(1)
 
