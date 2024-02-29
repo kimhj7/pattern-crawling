@@ -3,6 +3,8 @@ import subprocess
 import tkinter.messagebox
 import os
 import sys
+import win32api
+import win32file
 
 import pyautogui
 import pyperclip
@@ -23,12 +25,14 @@ win.attributes("-topmost", True)
 
 from selenium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options as ChromeOptions
 from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
-from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, StaleElementReferenceException
+from selenium.common.exceptions import NoSuchElementException, NoSuchWindowException, StaleElementReferenceException, WebDriverException
 from screeninfo import get_monitors
 
 options = ChromeOptions()
@@ -47,11 +51,11 @@ elif monitors[0].width > 1367 and monitors[0].width < 1610:
     options.add_argument("force-device-scale-factor=0.6")
     options.add_argument("high-dpi-support=0.6")
 elif monitors[0].width > 1610 and monitors[0].width < 1900:
-    options.add_argument("force-device-scale-factor=0.7")
-    options.add_argument("high-dpi-support=0.7")
+    options.add_argument("force-device-scale-factor=0.63")
+    options.add_argument("high-dpi-support=0.63")
 elif monitors[0].width > 1900 and monitors[0].width < 2500:
-    options.add_argument("force-device-scale-factor=0.8")
-    options.add_argument("high-dpi-support=0.8")
+    options.add_argument("force-device-scale-factor=0.65")
+    options.add_argument("high-dpi-support=0.65")
 elif monitors[0].width > 2500 and monitors[0].width < 3000:
     options.add_argument("force-device-scale-factor=0.9")
     options.add_argument("high-dpi-support=0.9")
@@ -71,18 +75,26 @@ service = ChromeService(executable_path=ChromeDriverManager().install())
 
 last_opened_window_handle = True
 
-def get_usb_serial_number(drive_letter):
-    # Windows에서는 dir 명령어를 사용하여 USB 시리얼 번호를 가져옵니다.
-    # 이 코드는 Windows 전용입니다.
-    cmd = f"dir {drive_letter}:"
-    result = os.popen(cmd).read()
-    # 시리얼 번호가 "Serial Number"로 시작하는 라인을 찾습니다.
-    serial_number = None
-    for line in result.split('\n'):
-        if line.startswith(" Serial Number"):
-            serial_number = line.split(":")[-1].strip()
-            break
-    return serial_number
+serial_number = "TEST010"
+
+def get_current_drive_serial():
+    try:
+        # wmic 명령어 실행하여 시리얼 번호 가져옴
+        result = subprocess.run(["wmic", "diskdrive", "get", "SerialNumber"], capture_output=True, text=True,
+                                check=True)
+        lines = result.stdout.strip().split('\n')
+
+        # 지정한 시리얼 번호 확인
+        specified_serial = "121220160204"  # 여기에 지정한 시리얼 번호를 추가하세요
+        for line in lines:
+            if specified_serial in line:
+                return True
+
+        return None
+    except Exception as e:
+        print("디스크 드라이브의 시리얼 번호를 가져오는 데 문제가 발생했습니다:", e)
+        return None
+
 
 def get_external_ip():
     response = requests.get('https://httpbin.org/ip')
@@ -140,8 +152,21 @@ def reset(driver, driver2):
             break
 
 
+
+
 def crawlresult(driver, driver2):
+
     while True:
+        try:
+            # 특정 요소를 찾음
+            session_pop = driver.find_element(By.CSS_SELECTOR, 'div.content--82383 > div.popupContainer--53f29.blocking--88949.highestPriority--6e829 > div > div')
+
+            # 요소가 발견되면 반복 중지
+            break
+        except NoSuchElementException:
+            # 요소가 발견되지 않으면 계속 반복
+            pass
+
         if not last_opened_window_handle:
             break
 
@@ -340,64 +365,64 @@ def findurl(driver, driver2):
 
 
 def doAction(arg, driver, driver2):
-    # 초기 페이지로 이동
-    driver.get(arg)
-    driver2.get("http://pattern2024.com/bbs/login.php")
+    try:
+        # 초기 페이지로 이동
+        driver.get(arg)
+        driver2.get("http://pattern2024.com/bbs/login.php")
+        findurl(driver, driver2)
+    except WebDriverException as e:
+        print("WebDriver 연결 오류 발생:", e)
+        # 오류 처리 로직, 예를 들어, 드라이버 재시작
 
-    findurl(driver, driver2)
 
-script_path = sys.argv[0]
-drive_letter = os.path.splitdrive(script_path)[0]
+serial_check = get_current_drive_serial()
 
-serial_number = get_usb_serial_number(drive_letter)
-def main(a):
-    # 허용할 USB 드라이브의 시리얼 번호입니다.
-    allowed_usb_serial = "121220160204"  # 여기에 허용할 시리얼 번호를 입력하세요.
+def main(a, b):
 
     # 현재 실행 중인 스크립트 파일의 경로를 가져옵니다.
-
-    if os.name == 'nt' and drive_letter:
-
-        if serial_number == allowed_usb_serial:
-            print("허용된 USB 드라이브에서 프로그램이 실행됩니다.")
-            global width
-            global height
-
-            if monitors[0].width < 1367:
-                width = monitors[0].width * 1.05
-                height = monitors[0].height * 1.6
-            elif monitors[0].width > 1367 and monitors[0].width < 1610:
-                width = monitors[0].width / 1.1
-                height = monitors[0].height * 1.5
-            elif monitors[0].width > 1610 and monitors[0].width < 1900:
-                width = monitors[0].width / 1.35
-                height = monitors[0].height * 1.2
-            elif monitors[0].width > 1900 and monitors[0].width < 2500:
-                width = monitors[0].width / 1.65
-                height = monitors[0].height * 1.1
-            elif monitors[0].width > 2500 and monitors[0].width < 3000:
-                width = monitors[0].width / 1.68
-                height = monitors[0].height / 1.1
-            elif monitors[0].width > 3000:
-                width = monitors[0].width / 2.5
-                height = monitors[0].height / 1.5
-            driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
-            driver2 = webdriver.Chrome(service=service, options=options)
-            driver.set_window_size(width - 120, height)
-            driver.set_window_position(0, 0)
-            driver2.set_window_size(width - 120, height)
-            driver2.set_window_position(width - 120, 0)
-
-            doAction(a, driver, driver2)
-        else:
-            print("허용되지 않은 USB 드라이브입니다. 프로그램을 종료합니다.")
-            sys.exit(1)
+    sp = b.split(",")
+    if sp[0] == "1":
+        tkinter.messagebox.showwarning("동시 사용오류", "다른곳에서 동시접속 사용중입니다.\n사용중인 아이피 : %s" % sp[1])
     else:
-        tkinter.messagebox.showwarning("허용되지 않은 USB", "허용되지 않은 USB 드라이브입니다. 프로그램을 종료합니다.")
-        print("USB 드라이브에서 프로그램을 실행해야 합니다.")
-        sys.exit(1)
+        global width
+        global height
 
+        if monitors[0].width < 1367:
+            width = monitors[0].width * 1.2
+            height = monitors[0].height * 1.8
+        elif monitors[0].width > 1367 and monitors[0].width < 1610:
+            width = monitors[0].width / 1.1
+            height = monitors[0].height * 1.5
+        elif monitors[0].width > 1610 and monitors[0].width < 1900:
+            width = monitors[0].width / 1.35
+            height = monitors[0].height * 1.2
+        elif monitors[0].width > 1900 and monitors[0].width < 2500:
+            width = monitors[0].width / 1.2
+            height = monitors[0].height * 1.35
+        elif monitors[0].width > 2500 and monitors[0].width < 3000:
+            width = monitors[0].width / 1.68
+            height = monitors[0].height / 1.1
+        elif monitors[0].width > 3000:
+            width = monitors[0].width / 2.5
+            height = monitors[0].height / 1.5
+        driver = webdriver.Chrome(service=service, options=options)  # <- options로 변경
+        driver2 = webdriver.Chrome(service=service, options=options)
+        driver.set_window_size(width - 120, height)
+        driver.set_window_position(0, 0)
+        driver2.set_window_size(width - 120, height)
+        driver2.set_window_position(width - 120, 0)
 
+        doAction(a, driver, driver2)
+
+url = "http://15.165.159.63/serial_check2.php"
+datas = {
+    'serial_number': serial_number,
+    'mac': get_mac_address(),
+    'ip': get_external_ip()
+}
+
+response = requests.post(url, data=datas)
+t = response.text
 
 def relative_to_assets(path: str) -> Path:
     return ASSETS_PATH / Path(path)
@@ -493,7 +518,7 @@ button_1 = Button(
     image=button_image_1,
     borderwidth=0,
     highlightthickness=0,
-    command = lambda: main(entry_1.get()),
+    command = lambda: main(entry_1.get(), t),
     relief="flat"
 )
 button_1.place(
@@ -504,15 +529,13 @@ button_1.place(
 )
 button_1.bind("<Enter>", button_1.config(cursor="hand2"))
 button_1.bind("<Leave>", button_1.config(cursor=""))
-canvas.create_text(
-    730,
-    419.0,
-    anchor="nw",
-    text="SERIAL NO. %s" % serial_number,
-    fill="#a0a0a0",
-    font=("ZCOOLXiaoWei Regular", 14 * -1)
-)
+
 
 win.resizable(False, False)
 
-win.mainloop()
+ab = t.split(",")
+print(ab[0])
+if ab[0] == "0":
+    win.mainloop()
+else:
+    tkinter.messagebox.showwarning("경고", "사용이 승인되지 않았습니다.")
